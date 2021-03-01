@@ -32,8 +32,8 @@ function Input(){
         })
     }
 
-    function _delete(){
-        fetch(`${databaseURL}/One/${id}`,{
+    function _delete(id){
+        fetch(`${databaseURL}/One/${id}.json`,{
             method : 'DELETE'
         }).then(res=>{
             if(res.status!==200){
@@ -48,7 +48,7 @@ function Input(){
     }
     useEffect(()=>{
         _get();
-    },[])
+    },[outputText])
 
     const handleChange = (e) =>{
         setInputText({...inputText,[e.target.name]:e.target.value});
@@ -56,6 +56,8 @@ function Input(){
     }
 
     const handleClick = (e)=>{
+        if(!inputText.name||!inputText.value)
+            return;
         alert(`Did you see?
 ${inputText.name}, ${inputText.value}`)
         _post(inputText)
