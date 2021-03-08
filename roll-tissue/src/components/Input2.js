@@ -32,10 +32,15 @@ function Input2(){
 
     const classes = useStyles();
 
+    const [reload , reloadPage] = useState(0);
     const [inputText, setInputText] = useState({name:"", text:"",password:""});
+
     const [outputText, setOutputText]  = useState({});
+    const [tmp, setTmp] = useState({text:{id: '123', password: ''}});
+
     const [setting, setSetting] = useState({
-        dialog : 'false'
+        dialog1 : false,
+        dialog2 : false
     })
 
     function _get(){
@@ -64,6 +69,8 @@ function Input2(){
     }
 
     function _delete(id){
+
+        
         fetch(`${databaseURL}/Two/${id}.json`,{
             method : 'DELETE'
         }).then(res=>{
@@ -76,17 +83,25 @@ function Input2(){
             delete nextState[id];
             setOutputText(nextState)
         })
+        
     }
+
     useEffect(()=>{
         _get();
-    },[outputText])
+    },[reload])
 
     const handleChange = (e) =>{
         setInputText({...inputText,[e.target.name]:e.target.value});
     }
 
     const handleDialogToggle = () => {
-        setSetting({dialog : !setting.dialog})
+        setSetting({...setting,dialog1 : !setting.dialog1})
+    }
+
+    const handleDialogToggle2 = (id) =>{
+        if(setting.dialog2 ===false)
+            setTmp({text:{id:id}})
+        setSetting({...setting,dialog2 : !setting.dialog2})
     }
 
     const handleClick = (e)=>{
@@ -96,13 +111,22 @@ function Input2(){
             }
         alert(`Did you see?
 ${inputText.name}`)
+        
         _post(inputText)
+        setSetting({...setting,dialog1 : !setting.dialog1})
+        reloadPage(reload+1)
     }
 
     const handleDelete = (id)=>{
         _delete(id)
+        setSetting({...setting,dialog2 : !setting.dialog2})
+        reloadPage(reload+1)
+        
     }
+
+    
     return(<>
+        <div>{tmp.text.id}</div>
         {Object.keys(outputText).map(id=>{
             const two = outputText[id];
             return(
@@ -117,7 +141,7 @@ ${inputText.name}`)
                     </Typography>
                     </Grid>
                     <Grid item xs = {3}>
-                        <Button variant = "contained" color = "primary" onClick = {()=>handleDelete(id)}>delete</Button>
+                        <Button variant = "contained" color = "primary" onClick = {()=>handleDialogToggle2(id)}>delete</Button>
                     </Grid>
                 </Grid>
             </CardContent></Card>
@@ -126,7 +150,7 @@ ${inputText.name}`)
 
         
         <Fab color = "primary" className = {classes.fab} onClick = {handleDialogToggle}><AddIcon/></Fab>
-        <Dialog open = {setting.dialog} onClose = {handleDialogToggle}>
+        <Dialog open = {setting.dialog1} onClose = {handleDialogToggle}>
             <DialogTitle>Write</DialogTitle>
             <DialogContent>
                 <TextField label = "name" type = "text" name ="name" value = {inputText.name} onChange = {handleChange}/><br/>
@@ -134,8 +158,19 @@ ${inputText.name}`)
                 <TextField label = "password" type = "text" name ="password" value = {inputText.password} onChange = {handleChange}/><br/>
             </DialogContent>
             <DialogActions>
-                <Button variant = "contained" color = "primary" onClick = {handleClick}>GO</Button>
+                <Button variant = "contained" color = "primary" onClick = {()=>handleClick()}>GO</Button>
                 <Button variant = "contained" color = "primary" onClick = {handleDialogToggle}>Cancel</Button>
+            </DialogActions>
+        </Dialog>
+
+        <Dialog open = {setting.dialog2} onClose = {handleDialogToggle2}>
+            <DialogTitle>Write</DialogTitle>
+            <DialogContent>
+              <TextField label = "password" type = "text" name ="password" value = {inputText.password} onChange = {handleChange}/><br/>
+            </DialogContent>
+            <DialogActions>
+                <Button variant = "contained" color = "primary" onClick = {()=>handleDelete(tmp.text.id)}>DELETE</Button>
+                <Button variant = "contained" color = "primary" onClick = {handleDialogToggle2}>Cancel</Button>
             </DialogActions>
         </Dialog>
     </>)
